@@ -3,15 +3,16 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Product {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
-  description String
+  description String   @db.Text
   price       Float
   imageUrl    String
   category    String
@@ -29,7 +30,7 @@ model User {
   name      String
   email     String?
   password  String
-  role      String   @default("USER") // "ADMIN" atau "USER"
+  role      String   @default("USER")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

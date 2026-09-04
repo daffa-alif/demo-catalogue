@@ -6,7 +6,19 @@ export const productSchema = z.object({
   description: z.string().min(8, "Deskripsi minimal 8 karakter"),
   price: z.coerce.number().positive("Harga harus bernilai positif"),
   category: z.string().min(2, "Kategori harus dipilih atau diisi"),
-  imageUrl: z.string().url("URL gambar harus valid (http/https)").or(z.string().startsWith("/")),
+  imageUrl: z
+    .string()
+    .min(1, "Gambar produk wajib diisi")
+    .refine(
+      (val) =>
+        val.startsWith("http://") ||
+        val.startsWith("https://") ||
+        val.startsWith("/") ||
+        val.startsWith("data:image/"),
+      {
+        message: "Format URL gambar atau berkas unggahan tidak valid",
+      }
+    ),
   isAvailable: z.boolean().default(true),
 });
 

@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# demo-catalogue
 
-## Getting Started
+Katalog Aplikasi Bisnis, Sistem POS Kasir, & Pencatatan Penjualan Siap Pakai berbasis **Next.js 16 (App Router)**, **Tailwind CSS**, **Prisma ORM**, **Server Actions**, dan **Dummy QRIS Payment**.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Fitur Utama
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Main / Landing Page Terpisah (`/`)**: Hero section, kategori aplikasi, keunggulan toko, dan showcase produk unggulan.
+- **Halaman Katalog Penuh (`/katalog`)**: Pencarian produk real-time dan filter kategori multi-kriteria.
+- **Detail Produk Dinamis (`/product/[slug]`)**: Spesifikasi lengkap, harga resmi IDR, dan tombol CTA WhatsApp.
+- **Dummy Pembayaran QRIS**:
+  - Modal pembayaran QRIS interaktif dengan nominal dinamis.
+  - Hitung mundur 15 menit.
+  - Simulasi verifikasi transaksi sukses dengan penerbitan nomor lisensi otomatis.
+- **Autentikasi Pengguna & Hak Akses Admin**:
+  - Portal Login & Register untuk pengguna umum / customer (`/login`).
+  - **Akses Khusus Admin**:
+    - **Username:** `admin`
+    - **Password:** `admin123`
+  - Proteksi dashboard admin (`/admin`) dengan fitur CRUD lengkap (Tambah, Edit, Hapus, Toggle Ketersediaan Stok/Lisensi).
+- **Arsitektur Server Actions**: Mutasi data langsung dengan revalidasi cache instan (`revalidatePath`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Tech Stack
 
-## Learn More
+- **Framework:** Next.js (App Router, TypeScript)
+- **Styling:** Tailwind CSS + Lucide Icons
+- **Database:** SQLite (Lokal) via Prisma ORM (Siap migrasi ke PostgreSQL/Supabase)
+- **Validasi:** Zod
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📦 Panduan Instalasi Lokal
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Clone repositori**:
+   ```bash
+   git clone git@github.com:daffa-alif/demo-catalogue.git
+   cd demo-catalogue
+   ```
 
-## Deploy on Vercel
+2. **Instal dependensi**:
+   ```bash
+   npm install
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Setup Environment**:
+   Salin `.env.example` menjadi `.env`:
+   ```bash
+   cp .env.example .env
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **Sinkronisasi Database & Generate Prisma Client**:
+   ```bash
+   npx prisma db push
+   ```
+
+5. **Isi Data Awal (Seeding)**:
+   ```bash
+   npx tsx prisma/seed.ts
+   ```
+
+6. **Jalankan Development Server**:
+   ```bash
+   npm run dev
+   ```
+   Buka browser di [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 🔐 Kredensial Pengujian
+
+- **Admin Dashboard:** [http://localhost:3000/admin](http://localhost:3000/admin)
+  - **Username:** `admin`
+  - **Password:** `admin123`
+- **Customer Biasa:**
+  - Dapat langsung daftar akun baru di halaman [http://localhost:3000/login](http://localhost:3000/login).

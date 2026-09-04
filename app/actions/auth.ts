@@ -44,41 +44,75 @@ export async function loginUser(formData: {
 
   // Kondisi Khusus Admin
   if (username === "admin" && password === "admin123") {
-    // Pastikan admin ada di database
-    let admin = await prisma.user.findUnique({ where: { username: "admin" } });
-    if (!admin) {
-      admin = await prisma.user.create({
-        data: {
-          username: "admin",
-          name: "Administrator Utama",
-          password: "admin123",
-          role: "ADMIN",
-        },
+    try {
+      // Pastikan admin ada di database
+      let admin = await prisma.user.findUnique({ where: { username: "admin" } });
+      if (!admin) {
+        admin = await prisma.user.create({
+          data: {
+            username: "admin",
+            name: "Administrator Utama",
+            password: "admin123",
+            role: "ADMIN",
+          },
+        });
+      }
+
+      const sessionUser: SessionUser = {
+        id: admin.id,
+        username: admin.username,
+        name: admin.name,
+        role: "ADMIN",
+      };
+
+      const cookieStore = await cookies();
+      cookieStore.set("user_session", JSON.stringify(sessionUser), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 7, // 7 hari
+        path: "/",
       });
+
+      revalidatePath("/");
+      revalidatePath("/admin");
+      return {
+        success: true,
+        message: "Selamat datang kembali, Administrator!",
+        user: sessionUser,
+      };
+    } catch (dbError: any) {
+      console.error("Admin DB login error (fallback active):", dbError);
+      // Fallback superadmin jika database sedang proses inisialisasi / env var belum lengkap di Vercel
+      const fallbackUser: SessionUser = {
+        id: "admin-root",
+        username: "admin",
+        name: "Administrator Utama",
+        role: "ADMIN",
+      };
+
+      try {
+        const cookieStore = await cookies();
+        cookieStore.set("user_session", JSON.stringify(fallbackUser), {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60 * 24 * 7,
+          path: "/",
+        });
+
+        revalidatePath("/");
+        revalidatePath("/admin");
+        return {
+          success: true,
+          message: "Selamat datang kembali, Administrator!",
+          user: fallbackUser,
+        };
+      } catch (cookieErr: any) {
+        return {
+          success: false,
+          message: "Gagal membuat sesi login: " + (cookieErr.message || "Unknown error"),
+        };
+      }
     }
-
-    const sessionUser: SessionUser = {
-      id: admin.id,
-      username: admin.username,
-      name: admin.name,
-      role: "ADMIN",
-    };
-
-    const cookieStore = await cookies();
-    cookieStore.set("user_session", JSON.stringify(sessionUser), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7, // 7 hari
-      path: "/",
-    });
-
-    revalidatePath("/");
-    revalidatePath("/admin");
-    return {
-      success: true,
-      message: "Selamat datang kembali, Administrator!",
-      user: sessionUser,
-    };
   }
 
   // Login Pengguna Biasa

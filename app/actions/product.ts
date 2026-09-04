@@ -60,31 +60,31 @@ export async function getProductBySlug(slug: string) {
 
 // 3. Create / Tambah Produk Baru
 export async function createProduct(formData: unknown): Promise<ActionResponse> {
-  const validated = productSchema.safeParse(formData);
-
-  if (!validated.success) {
-    const errorDetails = Object.values(validated.error.flatten().fieldErrors)
-      .flat()
-      .join(". ");
-    return {
-      success: false,
-      message: errorDetails || "Validasi form gagal. Mohon periksa isian form Anda.",
-      errors: validated.error.flatten().fieldErrors,
-    };
-  }
-
-  const { title, description, price, category, imageUrl, isAvailable } = validated.data;
-  const baseSlug = slugify(title);
-  let finalSlug = baseSlug;
-  let count = 1;
-
-  // Cek duplikasi slug
-  while (await prisma.product.findUnique({ where: { slug: finalSlug } })) {
-    finalSlug = `${baseSlug}-${count}`;
-    count++;
-  }
-
   try {
+    const validated = productSchema.safeParse(formData);
+
+    if (!validated.success) {
+      const errorDetails = Object.values(validated.error.flatten().fieldErrors)
+        .flat()
+        .join(". ");
+      return {
+        success: false,
+        message: errorDetails || "Validasi form gagal. Mohon periksa isian form Anda.",
+        errors: validated.error.flatten().fieldErrors,
+      };
+    }
+
+    const { title, description, price, category, imageUrl, isAvailable } = validated.data;
+    const baseSlug = slugify(title) || "app";
+    let finalSlug = baseSlug;
+    let count = 1;
+
+    // Cek duplikasi slug aman di dalam try-catch
+    while (await prisma.product.findUnique({ where: { slug: finalSlug } })) {
+      finalSlug = `${baseSlug}-${count}`;
+      count++;
+    }
+
     const newProduct = await prisma.product.create({
       data: {
         title,
@@ -99,6 +99,7 @@ export async function createProduct(formData: unknown): Promise<ActionResponse> 
 
     revalidatePath("/");
     revalidatePath("/admin");
+    revalidatePath("/katalog");
 
     return {
       success: true,
@@ -106,6 +107,7 @@ export async function createProduct(formData: unknown): Promise<ActionResponse> 
       data: newProduct,
     };
   } catch (error: any) {
+    console.error("Create product error:", error);
     return {
       success: false,
       message: error.message || "Gagal menyimpan produk ke database",
@@ -115,22 +117,22 @@ export async function createProduct(formData: unknown): Promise<ActionResponse> 
 
 // 4. Update / Edit Produk
 export async function updateProduct(id: string, formData: unknown): Promise<ActionResponse> {
-  const validated = productSchema.safeParse(formData);
-
-  if (!validated.success) {
-    const errorDetails = Object.values(validated.error.flatten().fieldErrors)
-      .flat()
-      .join(". ");
-    return {
-      success: false,
-      message: errorDetails || "Validasi form gagal",
-      errors: validated.error.flatten().fieldErrors,
-    };
-  }
-
-  const { title, description, price, category, imageUrl, isAvailable } = validated.data;
-
   try {
+    const validated = productSchema.safeParse(formData);
+
+    if (!validated.success) {
+      const errorDetails = Object.values(validated.error.flatten().fieldErrors)
+        .flat()
+        .join(". ");
+      return {
+        success: false,
+        message: errorDetails || "Validasi form gagal",
+        errors: validated.error.flatten().fieldErrors,
+      };
+    }
+
+    const { title, description, price, category, imageUrl, isAvailable } = validated.data;
+
     const existing = await prisma.product.findUnique({ where: { id } });
     if (!existing) {
       return { success: false, message: "Produk tidak ditemukan" };
@@ -138,7 +140,7 @@ export async function updateProduct(id: string, formData: unknown): Promise<Acti
 
     let finalSlug = existing.slug;
     if (existing.title !== title) {
-      const baseSlug = slugify(title);
+      const baseSlug = slugify(title) || "app";
       finalSlug = baseSlug;
       let count = 1;
       while (
@@ -166,6 +168,7 @@ export async function updateProduct(id: string, formData: unknown): Promise<Acti
 
     revalidatePath("/");
     revalidatePath("/admin");
+    revalidatePath("/katalog");
     revalidatePath(`/product/${finalSlug}`);
 
     return {
@@ -174,6 +177,7 @@ export async function updateProduct(id: string, formData: unknown): Promise<Acti
       data: updated,
     };
   } catch (error: any) {
+    console.error("Update product error:", error);
     return {
       success: false,
       message: error.message || "Gagal mengupdate produk",

@@ -13,7 +13,7 @@ export async function uploadProductImage(formData: FormData): Promise<{
       return { success: false, message: "File gambar tidak ditemukan." };
     }
 
-    // Batasi ukuran file (maksimal 4MB untuk serverless payload)
+    // Batasi ukuran file (maksimal 4MB)
     if (file.size > 4 * 1024 * 1024) {
       return { success: false, message: "Ukuran file terlalu besar (maksimal 4MB)." };
     }
@@ -25,6 +25,13 @@ export async function uploadProductImage(formData: FormData): Promise<{
     // 1. Jika Supabase Storage terkonfigurasi, coba upload ke Bucket 'products'
     if (isSupabaseConfigured && supabase) {
       try {
+        // Cek dan buat bucket 'products' otomatis jika belum ada
+        const { data: buckets } = await supabase.storage.listBuckets();
+        const hasProductsBucket = buckets?.some((b) => b.name === "products");
+        if (!hasProductsBucket) {
+          await supabase.storage.createBucket("products", { public: true });
+        }
+
         const { error } = await supabase.storage
           .from("products")
           .upload(safeName, buffer, {
@@ -39,15 +46,14 @@ export async function uploadProductImage(formData: FormData): Promise<{
             url: data.publicUrl,
           };
         } else {
-          console.warn("Supabase Storage fallback to Base64:", error.message);
+          console.warn("Supabase Storage error, falling back to Base64:", error.message);
         }
       } catch (sbErr) {
-        console.warn("Supabase Storage error, using fallback:", sbErr);
+        console.warn("Supabase Storage exception, using fallback:", sbErr);
       }
     }
 
     // 2. Fallback Universal (Base64 Data URI)
-    // Berjalan aman di Vercel Serverless & lokal tanpa error read-only filesystem (ENOENT mkdir)
     const mimeType = file.type || "image/jpeg";
     const base64Data = buffer.toString("base64");
     const dataUri = `data:${mimeType};base64,${base64Data}`;

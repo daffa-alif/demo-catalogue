@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import type { Product } from "@prisma/client";
 import { createProduct, updateProduct } from "@/app/actions/product";
+import { uploadProductImage } from "@/app/actions/upload";
 import { ProductFormValues } from "@/lib/validations/product";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, UploadCloud, Check, Image as ImageIcon } from "lucide-react";
 
 interface DialogProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface DialogProps {
 
 export default function AdminProductDialog({ isOpen, onClose, productToEdit }: DialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const [formData, setFormData] = useState<ProductFormValues>({
@@ -47,7 +49,28 @@ export default function AdminProductDialog({ isOpen, onClose, productToEdit }: D
     }
   }, [productToEdit, isOpen]);
 
-  if (!isOpen) return null;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setErrorMsg("");
+    const body = new FormData();
+    body.append("file", file);
+
+    try {
+      const res = await uploadProductImage(body);
+      if (res.success && res.url) {
+        setFormData((prev) => ({ ...prev, imageUrl: res.url! }));
+      } else {
+        setErrorMsg(res.message || "Gagal mengunggah file gambar.");
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || "Gagal mengunggah gambar.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +93,8 @@ export default function AdminProductDialog({ isOpen, onClose, productToEdit }: D
       setIsSubmitting(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
@@ -142,18 +167,69 @@ export default function AdminProductDialog({ isOpen, onClose, productToEdit }: D
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-zinc-700 uppercase">
-              URL Gambar Produk
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.imageUrl}
-              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              className="mt-1 w-full rounded-xl border border-zinc-300 p-2.5 text-sm focus:border-zinc-900 focus:outline-none"
-              placeholder="https://... atau /uploads/gambar.jpg"
-            />
+          {/* Upload Gambar: Komputer / Supabase Storage */}
+          <div className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-zinc-700 uppercase">
+                Gambar / Mockup Software
+              </label>
+              <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                Supabase Storage Ready
+              </span>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* Preview Thumbnail */}
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xs">
+                {formData.imageUrl ? (
+                  <img
+                    src={formData.imageUrl}
+                    alt="Preview"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-zinc-300">
+                    <ImageIcon className="h-6 w-6" />
+                  </div>
+                )}
+              </div>
+
+              {/* Tombol Upload File */}
+              <div className="flex-1">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-white border border-zinc-300 px-3.5 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 shadow-xs transition">
+                  {isUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                  ) : (
+                    <UploadCloud className="h-4 w-4 text-indigo-600" />
+                  )}
+                  {isUploading ? "Mengunggah..." : "Pilih File dari Komputer"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={isUploading}
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-[11px] text-zinc-400 mt-1">
+                  Format PNG, JPG, WebP (Maksimal 5MB)
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] text-zinc-500 font-medium mb-1">
+                Atau masukkan tautan URL gambar langsung:
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.imageUrl}
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                className="w-full rounded-xl border border-zinc-300 bg-white p-2.5 text-xs text-zinc-700 focus:border-zinc-900 focus:outline-none"
+                placeholder="https://... atau /uploads/..."
+              />
+            </div>
           </div>
 
           <div>

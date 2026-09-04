@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "Koleksi aplikasi Point of Sale (POS), software pencatatan penjualan, inventori gudang, dan sistem kasir siap pakai dengan lisensi seumur hidup.",
 };
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function KatalogPage() {
   const products = await getProducts();

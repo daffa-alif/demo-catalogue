@@ -63,9 +63,12 @@ export async function createProduct(formData: unknown): Promise<ActionResponse> 
   const validated = productSchema.safeParse(formData);
 
   if (!validated.success) {
+    const errorDetails = Object.values(validated.error.flatten().fieldErrors)
+      .flat()
+      .join(". ");
     return {
       success: false,
-      message: "Validasi form gagal",
+      message: errorDetails || "Validasi form gagal. Mohon periksa isian form Anda.",
       errors: validated.error.flatten().fieldErrors,
     };
   }
@@ -115,9 +118,12 @@ export async function updateProduct(id: string, formData: unknown): Promise<Acti
   const validated = productSchema.safeParse(formData);
 
   if (!validated.success) {
+    const errorDetails = Object.values(validated.error.flatten().fieldErrors)
+      .flat()
+      .join(". ");
     return {
       success: false,
-      message: "Validasi form gagal",
+      message: errorDetails || "Validasi form gagal",
       errors: validated.error.flatten().fieldErrors,
     };
   }

@@ -85,7 +85,10 @@ export default function AdminProductDialog({ isOpen, onClose, productToEdit }: D
       if (res.success) {
         onClose();
       } else {
-        setErrorMsg(res.message || "Terjadi kesalahan saat menyimpan produk");
+        const msg = res.errors
+          ? Object.values(res.errors).flat().join(". ")
+          : res.message || "Terjadi kesalahan saat menyimpan produk";
+        setErrorMsg(msg);
       }
     } catch (err: any) {
       setErrorMsg(err.message || "Gagal menghubungi server");

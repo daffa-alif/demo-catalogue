@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BizApps - Beranda Katalog Aplikasi & POS Kasir</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+  </style>
+</head>
+<body class="min-h-full bg-zinc-50 text-zinc-900 flex flex-col antialiased">
+
+  <!-- ==================== NAVBAR ==================== -->
+  <header class="sticky top-0 z-40 w-full border-b border-zinc-200 bg-white/90 backdrop-blur-md">
+    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <!-- Brand Logo -->
+      <a href="/" class="flex items-center gap-2.5 text-zinc-900 group">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm transition-transform group-hover:scale-105">
+          <!-- AppWindow Icon -->
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="2" y="4" width="20" height="16" rx="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 4v4" stroke-width="2" stroke-linecap="round"/>
+            <path d="M2 8h20" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6 4v4" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-extrabold text-lg leading-tight tracking-tight text-zinc-900">
+            Biz<span class="text-indigo-600">Apps</span>
+          </span>
+          <span class="text-[10px] text-zinc-400 font-semibold tracking-wider uppercase">
+            Katalog Aplikasi & POS Kasir
+          </span>
+        </div>
+      </a>
+
+      <!-- Center Nav Links -->
+      <nav class="hidden md:flex items-center gap-1 bg-zinc-100/80 p-1 rounded-xl border border-zinc-200/80">
+        <a href="/" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white text-zinc-900 shadow-xs">
+          <!-- Home Icon -->
+          <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          Beranda
+        </a>
+        <a href="/katalog" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-600 hover:text-zinc-900 transition">
+          <!-- LayoutGrid Icon -->
+          <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/>
+            <rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/>
+            <rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/>
+            <rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/>
+          </svg>
+          Katalog Aplikasi
+        </a>
+        <a href="/profile" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-600 hover:text-zinc-900 transition">
+          <!-- User Icon -->
+          <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+          Profil & Lisensi
+        </a>
+      </nav>
+
+      <!-- Right Nav / Auth Controls -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="/login" class="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 shadow-xs transition">
+          <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+          Masuk / Daftar
+        </a>
+        <a href="/admin" class="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-3.5 py-2 text-xs font-semibold text-white hover:bg-zinc-800 shadow-xs transition">
+          <svg class="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          Admin
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== BERANDA (MAIN) ==================== -->
+  <main class="flex-1">
+
+    <!-- HERO SECTION -->
+    <section class="relative overflow-hidden border-b border-zinc-200 bg-gradient-to-b from-white via-zinc-50/50 to-zinc-100/60 py-20 sm:py-28">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50/80 px-4 py-1.5 text-xs font-bold text-indigo-800 shadow-xs mb-6">
+          <svg class="h-3.5 w-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+          </svg>
+          Katalog Aplikasi Bisnis, POS Kasir & Pembukuan Siap Pakai
+        </div>
+
+        <!-- Headline -->
+        <h1 class="text-4xl font-black tracking-tight text-zinc-900 sm:text-6xl lg:text-7xl">
+          Software Andal, <br />
+          <span class="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+            Bisnis Tumbuh Otomatis
+          </span>
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="mx-auto mt-6 max-w-2xl text-base sm:text-lg text-zinc-600 leading-relaxed">
+          Tingkatkan omset dan efisiensi operasional dengan sistem kasir (POS), pembukuan
+          penjualan real-time, manajemen stok gudang, dan absensi HRIS. Lisensi seumur hidup
+          tanpa biaya langganan bulanan.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="/katalog" class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-2xl bg-indigo-600 px-7 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 hover:bg-indigo-700 transition">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <rect x="2" y="4" width="20" height="16" rx="2" stroke-width="2"/>
+              <path d="M10 4v4M2 8h20M6 4v4" stroke-width="2"/>
+            </svg>
+            Jelajahi Katalog Aplikasi
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </a>
+          <a href="/admin" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-zinc-300 bg-white px-6 py-4 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 shadow-xs transition">
+            <svg class="h-4 w-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            Kelola Produk (Admin)
+          </a>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="mt-12 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs font-semibold text-zinc-500">
+          <span class="flex items-center gap-2">
+            <svg class="h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            Lisensi Seumur Hidup (No Monthly Fee)
+          </span>
+          <span class="flex items-center gap-2">
+            <svg class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="6" height="6" stroke-width="2"/>
+              <rect x="15" y="3" width="6" height="6" stroke-width="2"/>
+              <rect x="3" y="15" width="6" height="6" stroke-width="2"/>
+              <path d="M15 15h2v2h-2zM19 15h2v2h-2zM15 19h2v2h-2zM19 19h2v2h-2z" fill="currentColor"/>
+            </svg>
+            Aktivasi Instan via QRIS
+          </span>
+          <span class="flex items-center gap-2">
+            <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+            Termasuk Panduan & Dukungan Teknis
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- KATEGORI SOFTWARE -->
+    <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">
+          Solusi Terpadu
+        </span>
+        <h2 class="mt-1 text-3xl font-extrabold text-zinc-900">
+          Kategori Aplikasi Sesuai Jenis Usaha Anda
+        </h2>
+        <p class="mt-2 text-sm text-zinc-500">
+          Dari usaha toko kelontong, resto kafe, apotek, bengkel hingga bisnis berskala multi-cabang.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Card 1 -->
+        <a href="/katalog" class="group relative flex items-start gap-4 rounded-3xl border border-zinc-200 bg-white p-6 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all duration-300">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-blue-50 text-blue-600 border-blue-100 transition-transform group-hover:scale-110">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-zinc-900 group-hover:text-indigo-600 transition-colors">POS & Kasir Retail</h3>
+            <p class="mt-1 text-xs text-zinc-500 leading-relaxed">Minimarket, Toko Grosir, Distro, & Apotek</p>
+            <span class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600">
+              Lihat Aplikasi <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </span>
+          </div>
+        </a>
+
+        <!-- Card 2 -->
+        <a href="/katalog" class="group relative flex items-start gap-4 rounded-3xl border border-zinc-200 bg-white p-6 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all duration-300">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-amber-50 text-amber-600 border-amber-100 transition-transform group-hover:scale-110">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-zinc-900 group-hover:text-indigo-600 transition-colors">POS & Kasir Resto / Cafe</h3>
+            <p class="mt-1 text-xs text-zinc-500 leading-relaxed">Order Meja, Kitchen Display, & Manajemen Resep</p>
+            <span class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600">
+              Lihat Aplikasi <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </span>
+          </div>
+        </a>
+
+        <!-- Card 3 -->
+        <a href="/katalog" class="group relative flex items-start gap-4 rounded-3xl border border-zinc-200 bg-white p-6 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all duration-300">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-emerald-50 text-emerald-600 border-emerald-100 transition-transform group-hover:scale-110">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-zinc-900 group-hover:text-indigo-600 transition-colors">Pencatatan Penjualan & Akuntansi</h3>
+            <p class="mt-1 text-xs text-zinc-500 leading-relaxed">Laporan Laba Rugi, Faktur Invoice, & Kas UMKM</p>
+            <span class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600">
+              Lihat Aplikasi <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </span>
+          </div>
+        </a>
+
+        <!-- Card 4 -->
+        <a href="/katalog" class="group relative flex items-start gap-4 rounded-3xl border border-zinc-200 bg-white p-6 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all duration-300">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-purple-50 text-purple-600 border-purple-100 transition-transform group-hover:scale-110">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-zinc-900 group-hover:text-indigo-600 transition-colors">Manajemen Inventori & Gudang</h3>
+            <p class="mt-1 text-xs text-zinc-500 leading-relaxed">Stok Multi-Cabang, Expired Date, & Scan Barcode</p>
+            <span class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600">
+              Lihat Aplikasi <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </span>
+          </div>
+        </a>
+
+        <!-- Card 5 -->
+        <a href="/katalog" class="group relative flex items-start gap-4 rounded-3xl border border-zinc-200 bg-white p-6 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all duration-300">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-rose-50 text-rose-600 border-rose-100 transition-transform group-hover:scale-110">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-zinc-900 group-hover:text-indigo-600 transition-colors">HRIS & Presensi Karyawan</h3>
+            <p class="mt-1 text-xs text-zinc-500 leading-relaxed">Absensi Radius GPS, Hitung Gaji, & Slip WA</p>
+            <span class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600">
+              Lihat Aplikasi <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </span>
+          </div>
+        </a>
+
+        <!-- Card 6 -->
+        <a href="/katalog" class="group relative flex items-start gap-4 rounded-3xl border border-zinc-200 bg-white p-6 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all duration-300">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-cyan-50 text-cyan-600 border-cyan-100 transition-transform group-hover:scale-110">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-zinc-900 group-hover:text-indigo-600 transition-colors">CRM & Otomasi Bisnis</h3>
+            <p class="mt-1 text-xs text-zinc-500 leading-relaxed">WhatsApp Broadcast, Pipeline Sales, & Follow-up</p>
+            <span class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600">
+              Lihat Aplikasi <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- FEATURED APPS SHOWCASE -->
+    <section class="border-t border-zinc-200 bg-white py-16">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">
+              Aplikasi Terlaris
+            </span>
+            <h2 class="mt-1 text-3xl font-extrabold text-zinc-900">
+              Software Paling Banyak Digunakan Pemilik Bisnis
+            </h2>
+          </div>
+          <a href="/katalog" class="inline-flex items-center gap-1.5 text-sm font-bold text-indigo-600 hover:text-indigo-700 transition">
+            Lihat Semua (6 Aplikasi)
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <!-- Product 1 -->
+          <div class="group flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-xs transition-all duration-300 hover:border-indigo-300 hover:shadow-lg">
+            <div class="relative aspect-video w-full overflow-hidden rounded-2xl bg-zinc-100 border border-zinc-100">
+              <img src="https://images.unsplash.com/photo-1556742049-0a67e5572293?w=800&auto=format&fit=crop&q=80" alt="POS Kasir Retail Pro 2026" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <span class="absolute top-2.5 right-2.5 rounded-full bg-emerald-500/90 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                Ready
+              </span>
+            </div>
+            <div class="mt-4 flex flex-1 flex-col">
+              <div class="flex items-center justify-between">
+                <span class="rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-600">
+                  POS & Kasir Retail
+                </span>
+              </div>
+              <h3 class="mt-2 text-base font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
+                POS Kasir Retail Pro 2026 - Multi Cabang & Barcode
+              </h3>
+              <p class="mt-1 text-xs text-zinc-500 line-clamp-2 leading-relaxed">
+                Aplikasi Point of Sale lengkap untuk retail, minimarket, distro, dan grosir dengan barcode scan kilat.
+              </p>
+              <div class="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-zinc-400 block font-medium">Lisensi Lifetime</span>
+                  <span class="text-base font-black text-zinc-900">Rp 850.000</span>
+                </div>
+                <a href="/katalog" class="rounded-xl bg-indigo-50 p-2 text-indigo-600 hover:bg-indigo-600 hover:text-white transition">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product 2 -->
+          <div class="group flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-xs transition-all duration-300 hover:border-indigo-300 hover:shadow-lg">
+            <div class="relative aspect-video w-full overflow-hidden rounded-2xl bg-zinc-100 border border-zinc-100">
+              <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&auto=format&fit=crop&q=80" alt="Smart Resto & Cafe Cashier POS" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <span class="absolute top-2.5 right-2.5 rounded-full bg-emerald-500/90 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                Ready
+              </span>
+            </div>
+            <div class="mt-4 flex flex-1 flex-col">
+              <div class="flex items-center justify-between">
+                <span class="rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-600">
+                  POS & Kasir Resto / Cafe
+                </span>
+              </div>
+              <h3 class="mt-2 text-base font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
+                Smart Resto & Cafe Cashier POS - Kitchen Order Display
+              </h3>
+              <p class="mt-1 text-xs text-zinc-500 line-clamp-2 leading-relaxed">
+                Sistem kasir cerdas resto & kafe dengan layout meja, cetak tiket dapur KOT, dan HPP resep.
+              </p>
+              <div class="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-zinc-400 block font-medium">Lisensi Lifetime</span>
+                  <span class="text-base font-black text-zinc-900">Rp 950.000</span>
+                </div>
+                <a href="/katalog" class="rounded-xl bg-indigo-50 p-2 text-indigo-600 hover:bg-indigo-600 hover:text-white transition">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product 3 -->
+          <div class="group flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-xs transition-all duration-300 hover:border-indigo-300 hover:shadow-lg">
+            <div class="relative aspect-video w-full overflow-hidden rounded-2xl bg-zinc-100 border border-zinc-100">
+              <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80" alt="Pencatatan Penjualan & Laba Rugi" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <span class="absolute top-2.5 right-2.5 rounded-full bg-emerald-500/90 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                Ready
+              </span>
+            </div>
+            <div class="mt-4 flex flex-1 flex-col">
+              <div class="flex items-center justify-between">
+                <span class="rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-600">
+                  Pembukuan & Akuntansi
+                </span>
+              </div>
+              <h3 class="mt-2 text-base font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
+                Aplikasi Pencatatan Penjualan & Laba Rugi UMKM
+              </h3>
+              <p class="mt-1 text-xs text-zinc-500 line-clamp-2 leading-relaxed">
+                Software akuntansi praktis UMKM untuk laporan keuangan otomatis, invoice PDF, dan arus kas.
+              </p>
+              <div class="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-zinc-400 block font-medium">Lisensi Lifetime</span>
+                  <span class="text-base font-black text-zinc-900">Rp 450.000</span>
+                </div>
+                <a href="/katalog" class="rounded-xl bg-indigo-50 p-2 text-indigo-600 hover:bg-indigo-600 hover:text-white transition">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product 4 -->
+          <div class="group flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-xs transition-all duration-300 hover:border-indigo-300 hover:shadow-lg">
+            <div class="relative aspect-video w-full overflow-hidden rounded-2xl bg-zinc-100 border border-zinc-100">
+              <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80" alt="Manajemen Inventori & Gudang" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <span class="absolute top-2.5 right-2.5 rounded-full bg-emerald-500/90 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                Ready
+              </span>
+            </div>
+            <div class="mt-4 flex flex-1 flex-col">
+              <div class="flex items-center justify-between">
+                <span class="rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-600">
+                  Inventori & Pergudangan
+                </span>
+              </div>
+              <h3 class="mt-2 text-base font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
+                Sistem Manajemen Inventori & Gudang Multi-Lokasi
+              </h3>
+              <p class="mt-1 text-xs text-zinc-500 line-clamp-2 leading-relaxed">
+                Warehouse management system akurat untuk pelacakan batch expired date dan stok opname.
+              </p>
+              <div class="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-zinc-400 block font-medium">Lisensi Lifetime</span>
+                  <span class="text-base font-black text-zinc-900">Rp 1.350.000</span>
+                </div>
+                <a href="/katalog" class="rounded-xl bg-indigo-50 p-2 text-indigo-600 hover:bg-indigo-600 hover:text-white transition">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-12 text-center">
+          <a href="/katalog" class="inline-flex items-center gap-2 rounded-2xl bg-zinc-900 px-8 py-3.5 text-sm font-bold text-white hover:bg-zinc-800 shadow-sm transition">
+            Buka Katalog Lengkap Seluruh Aplikasi
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- VALUE BANNER -->
+    <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-700 via-indigo-800 to-blue-900 p-8 sm:p-14 text-white shadow-xl">
+        <div class="relative z-10 max-w-2xl">
+          <div class="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur-sm mb-4">
+            <svg class="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Siap Pasang & Mudah Digunakan
+          </div>
+          <h2 class="text-3xl font-extrabold sm:text-4xl tracking-tight">
+            Mulai Transaksi & Catat Penjualan Lebih Rapi
+          </h2>
+          <p class="mt-3 text-sm sm:text-base text-indigo-100 leading-relaxed">
+            Tinggalkan pencatatan manual di kertas atau Excel yang rawan selisih. Dapatkan
+            software kasir dan pembukuan resmi dengan aktivasi instan via QRIS.
+          </p>
+          <div class="mt-8 flex flex-wrap items-center gap-4">
+            <a href="/katalog" class="rounded-2xl bg-white px-6 py-3.5 text-sm font-bold text-indigo-900 hover:bg-indigo-50 shadow-md transition">
+              Pilih Aplikasi Usaha Anda
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>

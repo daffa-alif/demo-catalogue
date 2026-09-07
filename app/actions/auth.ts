@@ -187,5 +187,79 @@ export async function logoutUser(): Promise<{ success: boolean }> {
   cookieStore.delete("user_session");
   revalidatePath("/");
   revalidatePath("/admin");
+  revalidatePath("/profile");
   return { success: true };
 }
+
+export type UserProfile = {
+  id: string;
+  username: string;
+  name: string;
+  email: string | null;
+  role: "ADMIN" | "USER";
+  createdAt: Date;
+  accountAgeText: string;
+  joinedDateText: string;
+};
+
+// 4. Ambil Profil Pengguna Lengkap dengan Masa Aktif Akun
+export async function getUserProfile(): Promise<UserProfile | null> {
+  try {
+    const session = await getCurrentUser();
+    if (!session) return null;
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+    });
+
+    if (!user) return null;
+
+    // Hitung lama akun aktif
+    const now = new Date();
+    const created = new Date(user.createdAt);
+    const diffMs = now.getTime() - created.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+    let accountAgeText = "";
+    if (diffDays >= 365) {
+      const years = Math.floor(diffDays / 365);
+      const remainingMonths = Math.floor((diffDays % 365) / 30);
+      accountAgeText = `${years} tahun ${remainingMonths > 0 ? remainingMonths + " bulan" : ""}`.trim();
+    } else if (diffDays >= 30) {
+      const months = Math.floor(diffDays / 30);
+      const remainingDays = diffDays % 30;
+      accountAgeText = `${months} bulan ${remainingDays > 0 ? remainingDays + " hari" : ""}`.trim();
+    } else if (diffDays >= 7) {
+      const weeks = Math.floor(diffDays / 7);
+      accountAgeText = `${weeks} minggu`;
+    } else if (diffDays >= 1) {
+      accountAgeText = `${diffDays} hari`;
+    } else if (diffHours >= 1) {
+      accountAgeText = `${diffHours} jam`;
+    } else {
+      accountAgeText = "Baru saja bergabung (Hari ini)";
+    }
+
+    const joinedDateText = new Intl.DateTimeFormat("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(created);
+
+    return {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      email: user.email,
+      role: (user.role as "ADMIN" | "USER") || "USER",
+      createdAt: user.createdAt,
+      accountAgeText,
+      joinedDateText,
+    };
+  } catch (error) {
+    console.error("Gagal mengambil profil user:", error);
+    return null;
+  }
+}
+

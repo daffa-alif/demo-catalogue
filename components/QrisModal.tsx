@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { formatRupiah } from "@/lib/utils";
-import { X, CheckCircle2, Clock, ShieldCheck, QrCode, Smartphone, Copy, Check } from "lucide-react";
+import { createOrder } from "@/app/actions/order";
+import { X, CheckCircle2, Clock, ShieldCheck, QrCode, Smartphone, Copy, Check, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 interface QrisModalProps {
   isOpen: boolean;
   onClose: () => void;
   product: {
+    id?: string;
     title: string;
     price: number;
   };
@@ -18,8 +21,13 @@ export default function QrisModal({ isOpen, onClose, product }: QrisModalProps) 
   const [isVerifying, setIsVerifying] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [createdOrder, setCreatedOrder] = useState<{
+    orderNumber: string;
+    licenseKey: string;
+  } | null>(null);
 
-  // Generate unique dummy transaction ID
+  // Generate fallback transaction ID
   const [trxId] = useState(() => `TRX-${Math.floor(100000 + Math.random() * 900000)}`);
 
   // Timer countdown
@@ -45,12 +53,40 @@ export default function QrisModal({ isOpen, onClose, product }: QrisModalProps) 
   const seconds = timeLeft % 60;
   const formattedTime = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
-  const handleSimulatePayment = () => {
+  const handleSimulatePayment = async () => {
     setIsVerifying(true);
-    setTimeout(() => {
-      setIsVerifying(false);
+    setErrorMessage("");
+
+    try {
+      if (!product.id) {
+        throw new Error("ID produk tidak valid.");
+      }
+
+      const res = await createOrder({
+        productId: product.id,
+        totalAmount: product.price,
+        paymentMethod: "QRIS",
+      });
+
+      if (!res.success) {
+        setErrorMessage(res.message);
+        setIsVerifying(false);
+        return;
+      }
+
+      if (res.order) {
+        setCreatedOrder({
+          orderNumber: res.order.orderNumber,
+          licenseKey: res.order.licenseKey,
+        });
+      }
+
       setIsPaid(true);
-    }, 1800);
+    } catch (err: any) {
+      setErrorMessage(err.message || "Gagal memproses transaksi.");
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const handleCopyAmount = () => {
@@ -199,17 +235,34 @@ export default function QrisModal({ isOpen, onClose, product }: QrisModalProps) 
                 </ol>
               </div>
 
+              {/* Error Message */}
+              {errorMessage && (
+                <div className="mt-4 rounded-xl bg-red-50 p-3.5 border border-red-200 text-xs text-red-700">
+                  <p className="font-semibold">{errorMessage}</p>
+                  {errorMessage.includes("login") && (
+                    <div className="mt-2">
+                      <Link
+                        href="/login"
+                        className="inline-flex items-center gap-1 font-bold text-red-800 underline hover:text-red-950"
+                      >
+                        Masuk ke Akun Sekarang &rarr;
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Action Button: Simulate Payment */}
               <div className="mt-6">
                 <button
                   onClick={handleSimulatePayment}
                   disabled={isVerifying}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 active:scale-[0.99] transition disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 active:scale-[0.99] transition disabled:opacity-60 cursor-pointer"
                 >
                   {isVerifying ? (
                     <span className="inline-flex items-center gap-2">
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Memeriksa Verifikasi Pembayaran...
+                      Memverifikasi Transaksi ke Database...
                     </span>
                   ) : (
                     <>
@@ -219,7 +272,7 @@ export default function QrisModal({ isOpen, onClose, product }: QrisModalProps) 
                   )}
                 </button>
                 <p className="text-center text-[11px] text-zinc-400 mt-2">
-                  *Ini adalah fitur demo/sandbox dummy pembayaran QRIS.
+                  *Setelah konfirmasi, lisensi otomatis disimpan ke profil akun Anda.
                 </p>
               </div>
             </>
@@ -232,13 +285,15 @@ export default function QrisModal({ isOpen, onClose, product }: QrisModalProps) 
               <h3 className="text-2xl font-extrabold text-zinc-900">Pembayaran Berhasil!</h3>
               <p className="text-sm text-zinc-600 mt-1 max-w-xs">
                 Transaksi Anda sebesar <strong>{formatRupiah(product.price)}</strong> telah kami
-                terima.
+                terima dan tersimpan ke database.
               </p>
 
               <div className="mt-6 w-full rounded-2xl bg-zinc-50 p-4 border border-zinc-200 text-left text-xs space-y-2">
                 <div className="flex justify-between">
                   <span className="text-zinc-500">ID Pesanan:</span>
-                  <span className="font-mono font-bold text-zinc-800">{trxId}</span>
+                  <span className="font-mono font-bold text-zinc-800">
+                    {createdOrder?.orderNumber || trxId}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-500">Metode Bayar:</span>
@@ -250,24 +305,53 @@ export default function QrisModal({ isOpen, onClose, product }: QrisModalProps) 
                     LUNAS / AKTIF
                   </span>
                 </div>
-                <div className="flex justify-between pt-2 border-t border-zinc-200">
+                <div className="flex justify-between items-center pt-2 border-t border-zinc-200">
                   <span className="text-zinc-500">Kunci Lisensi:</span>
-                  <span className="font-mono font-bold text-indigo-700">LIC-BZ89-4910-2026-PRO</span>
+                  <div className="flex items-center gap-1.5">
+                    <code className="font-mono font-bold text-indigo-700 select-all">
+                      {createdOrder?.licenseKey || "LIC-BZ89-4910-2026-PRO"}
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          createdOrder?.licenseKey || "LIC-BZ89-4910-2026-PRO"
+                        );
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      title="Salin Kunci Lisensi"
+                      className="text-zinc-400 hover:text-indigo-600 p-1"
+                    >
+                      {copied ? (
+                        <Check className="h-3.5 w-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <p className="text-[11px] text-zinc-500 italic mt-1">
-                  *Paket installer, source code, & buku panduan aktivasi telah dikirim ke email Anda.
+                  *Kunci lisensi dan installer software siap diakses kapan pun di halaman profil Anda.
                 </p>
               </div>
 
-              <div className="mt-8 flex w-full gap-3">
+              <div className="mt-8 flex flex-col sm:flex-row w-full gap-3">
+                <Link
+                  href="/profile"
+                  onClick={onClose}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-700 shadow-md transition"
+                >
+                  <span>Lihat di Profil Saya</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
                 <button
                   onClick={() => {
                     setIsPaid(false);
                     onClose();
                   }}
-                  className="flex-1 rounded-xl bg-zinc-900 py-3 text-sm font-semibold text-white hover:bg-zinc-800 transition"
+                  className="flex-1 rounded-xl border border-zinc-300 bg-white py-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition"
                 >
-                  Selesai & Tutup
+                  Tutup
                 </button>
               </div>
             </div>

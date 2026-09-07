@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { getCurrentUser, logoutUser, SessionUser } from "@/app/actions/auth";
 import { AppWindow, ShieldCheck, LogOut, User as UserIcon, LayoutGrid, Home } from "lucide-react";
 
+import { getSupabaseBrowserClient } from "@/lib/supabase";
+
 export default function Navbar() {
   const pathname = usePathname();
   const [user, setUser] = useState<SessionUser | null>(null);
@@ -20,6 +22,12 @@ export default function Navbar() {
   }, [pathname]);
 
   const handleLogout = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore
+    }
     await logoutUser();
     setUser(null);
     window.location.href = "/";
@@ -67,38 +75,62 @@ export default function Navbar() {
             <LayoutGrid className="h-3.5 w-3.5" />
             Katalog Aplikasi
           </Link>
+          {user && (
+            <Link
+              href="/profile"
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                pathname === "/profile"
+                  ? "bg-white text-zinc-900 shadow-xs"
+                  : "text-zinc-600 hover:text-zinc-900"
+              }`}
+            >
+              <UserIcon className="h-3.5 w-3.5" />
+              Profil & Lisensi
+            </Link>
+          )}
         </nav>
 
         {/* Right Nav / Auth Controls */}
         <div className="flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-xs font-bold text-zinc-900">{user.name}</span>
-                <span
-                  className={`text-[10px] font-semibold px-1.5 py-0.2 rounded ${
-                    user.role === "ADMIN"
-                      ? "bg-purple-100 text-purple-700"
-                      : "bg-indigo-100 text-indigo-700"
-                  }`}
-                >
-                  {user.role}
-                </span>
-              </div>
+              <Link
+                href="/profile"
+                className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-zinc-100 transition group"
+                title="Buka Profil Akun"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold text-xs shadow-xs">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden sm:flex flex-col items-start text-left">
+                  <span className="text-xs font-bold text-zinc-900 group-hover:text-indigo-600 transition">
+                    {user.name}
+                  </span>
+                  <span
+                    className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                      user.role === "ADMIN"
+                        ? "bg-purple-100 text-purple-700"
+                        : "bg-indigo-100 text-indigo-700"
+                    }`}
+                  >
+                    {user.role === "ADMIN" ? "Super Admin" : "Member"}
+                  </span>
+                </div>
+              </Link>
 
               {user.role === "ADMIN" && (
                 <Link
                   href="/admin"
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-800 transition"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-3 py-2 text-xs font-semibold text-white hover:bg-zinc-800 transition shadow-xs"
                 >
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                  Dashboard Admin
+                  Admin
                 </Link>
               )}
 
               <button
                 onClick={handleLogout}
-                title="Keluar"
+                title="Keluar Akun"
                 className="rounded-xl border border-zinc-200 p-2 text-zinc-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition"
               >
                 <LogOut className="h-4 w-4" />

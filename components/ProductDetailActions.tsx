@@ -63,6 +63,7 @@ export default function ProductDetailActions({ product }: ActionsProps) {
         isOpen={isQrisOpen}
         onClose={() => setIsQrisOpen(false)}
         product={{
+          id: product.id,
           title: product.title,
           price: product.price,
         }}

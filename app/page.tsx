@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getProducts } from "@/app/actions/product";
 import ProductCard from "@/components/ProductCard";
 import Navbar from "@/components/Navbar";
@@ -22,7 +23,14 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
+export default async function HomePage(props: {
+  searchParams?: Promise<{ code?: string }>;
+}) {
+  const searchParams = await props.searchParams;
+  if (searchParams?.code) {
+    redirect(`/auth/callback?code=${searchParams.code}`);
+  }
+
   const allProducts = await getProducts();
   const featuredProducts = allProducts.slice(0, 4);
 

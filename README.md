@@ -13,11 +13,11 @@ Katalog Aplikasi Bisnis, Sistem POS Kasir, & Pencatatan Penjualan Siap Pakai ber
   - Modal pembayaran QRIS interaktif dengan nominal dinamis.
   - Hitung mundur 15 menit.
   - Simulasi verifikasi transaksi sukses dengan penerbitan nomor lisensi otomatis.
-- **Autentikasi Pengguna & Hak Akses Admin**:
-  - Portal Login & Register untuk pengguna umum / customer (`/login`).
-  - **Akses Khusus Admin**:
-    - **Username:** `admin`
-    - **Password:** `admin123`
+- **Autentikasi Pengguna & Hak Akses Super Admin**:
+  - Dukungan autentikasi terintegrasi **Google OAuth 2.0** via Supabase Auth & login lokal.
+  - **Super Administrator Resmi**:
+    - Akun Google dengan email `venlisiaputri21@gmail.com` secara otomatis mendapatkan hak akses **Super Admin**.
+    - Sistem login default `admin / admin123` telah dihapus secara menyeluruh untuk keamanan.
   - Proteksi dashboard admin (`/admin`) dengan fitur CRUD lengkap (Tambah, Edit, Hapus, Toggle Ketersediaan Stok/Lisensi).
 - **Arsitektur Server Actions**: Mutasi data langsung dengan revalidasi cache instan (`revalidatePath`).
 
@@ -27,7 +27,8 @@ Katalog Aplikasi Bisnis, Sistem POS Kasir, & Pencatatan Penjualan Siap Pakai ber
 
 - **Framework:** Next.js (App Router, TypeScript)
 - **Styling:** Tailwind CSS + Lucide Icons
-- **Database:** SQLite (Lokal) via Prisma ORM (Siap migrasi ke PostgreSQL/Supabase)
+- **Database:** PostgreSQL (Supabase) via Prisma ORM
+- **Authentication & Storage:** Supabase Auth (Google OAuth 2.0) & Supabase Storage
 - **Validasi:** Zod
 
 ---
@@ -53,6 +54,7 @@ Katalog Aplikasi Bisnis, Sistem POS Kasir, & Pencatatan Penjualan Siap Pakai ber
 
 4. **Sinkronisasi Database & Generate Prisma Client**:
    ```bash
+   npx prisma generate
    npx prisma db push
    ```
 
@@ -69,10 +71,10 @@ Katalog Aplikasi Bisnis, Sistem POS Kasir, & Pencatatan Penjualan Siap Pakai ber
 
 ---
 
-## 🔐 Kredensial Pengujian
+## 🔐 Kredensial & Autentikasi
 
-- **Admin Dashboard:** [http://localhost:3000/admin](http://localhost:3000/admin)
-  - **Username:** `admin`
-  - **Password:** `admin123`
+- **Super Administrator:**
+  - Masuk melalui tombol **"Masuk dengan Google"** di `/login` atau `/admin` menggunakan akun Google `venlisiaputri21@gmail.com`.
 - **Customer Biasa:**
-  - Dapat langsung daftar akun baru di halaman [http://localhost:3000/login](http://localhost:3000/login).
+  - Masuk melalui Google OAuth (otomatis role USER) atau daftar akun baru melalui form registrasi lokal di `/login`.
+

@@ -8,6 +8,7 @@ export type SessionUser = {
   id: string;
   username: string;
   name: string;
+  email?: string;
   role: "ADMIN" | "USER";
 };
 
@@ -30,7 +31,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   }
 }
 
-// 1. Login User (Dengan kondisi khusus Superadmin: admin / admin123)
+// 1. Login User (Username & Password)
 export async function loginUser(formData: {
   username: string;
   password: string;
@@ -42,97 +43,31 @@ export async function loginUser(formData: {
     return { success: false, message: "Username dan password wajib diisi." };
   }
 
-  // Kondisi Khusus Admin
-  if (username === "admin" && password === "admin123") {
-    try {
-      // Pastikan admin ada di database
-      let admin = await prisma.user.findUnique({ where: { username: "admin" } });
-      if (!admin) {
-        admin = await prisma.user.create({
-          data: {
-            username: "admin",
-            name: "Administrator Utama",
-            password: "admin123",
-            role: "ADMIN",
-          },
-        });
-      }
-
-      const sessionUser: SessionUser = {
-        id: admin.id,
-        username: admin.username,
-        name: admin.name,
-        role: "ADMIN",
-      };
-
-      const cookieStore = await cookies();
-      cookieStore.set("user_session", JSON.stringify(sessionUser), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24 * 7, // 7 hari
-        path: "/",
-      });
-
-      revalidatePath("/");
-      revalidatePath("/admin");
-      return {
-        success: true,
-        message: "Selamat datang kembali, Administrator!",
-        user: sessionUser,
-      };
-    } catch (dbError: any) {
-      console.error("Admin DB login error (fallback active):", dbError);
-      // Fallback superadmin jika database sedang proses inisialisasi / env var belum lengkap di Vercel
-      const fallbackUser: SessionUser = {
-        id: "admin-root",
-        username: "admin",
-        name: "Administrator Utama",
-        role: "ADMIN",
-      };
-
-      try {
-        const cookieStore = await cookies();
-        cookieStore.set("user_session", JSON.stringify(fallbackUser), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          maxAge: 60 * 60 * 24 * 7,
-          path: "/",
-        });
-
-        revalidatePath("/");
-        revalidatePath("/admin");
-        return {
-          success: true,
-          message: "Selamat datang kembali, Administrator!",
-          user: fallbackUser,
-        };
-      } catch (cookieErr: any) {
-        return {
-          success: false,
-          message: "Gagal membuat sesi login: " + (cookieErr.message || "Unknown error"),
-        };
-      }
-    }
-  }
-
-  // Login Pengguna Biasa
+  // Login Pengguna melalui Database
   try {
     const user = await prisma.user.findUnique({
       where: { username },
     });
 
-    if (!user || user.password !== password) {
+    if (!user || !user.password || user.password !== password) {
       return {
         success: false,
         message: "Username atau password salah. Coba lagi.",
       };
     }
 
+    // Email venlisiaputri21@gmail.com selalu SUPER ADMIN
+    const isAdmin =
+      user.role === "ADMIN" ||
+      user.email?.toLowerCase().trim() === "venlisiaputri21@gmail.com";
+    const role: "ADMIN" | "USER" = isAdmin ? "ADMIN" : "USER";
+
     const sessionUser: SessionUser = {
       id: user.id,
       username: user.username,
       name: user.name,
-      role: (user.role as "ADMIN" | "USER") || "USER",
+      email: user.email || undefined,
+      role: role,
     };
 
     const cookieStore = await cookies();
@@ -201,13 +136,16 @@ export async function registerUser(formData: {
       };
     }
 
+    const isAdmin = email?.toLowerCase().trim() === "venlisiaputri21@gmail.com";
+    const role: "ADMIN" | "USER" = isAdmin ? "ADMIN" : "USER";
+
     const newUser = await prisma.user.create({
       data: {
         username,
         name,
         email: email || null,
         password,
-        role: "USER",
+        role: role,
       },
     });
 
@@ -215,7 +153,8 @@ export async function registerUser(formData: {
       id: newUser.id,
       username: newUser.username,
       name: newUser.name,
-      role: "USER",
+      email: newUser.email || undefined,
+      role: role,
     };
 
     // Auto login setelah registrasi

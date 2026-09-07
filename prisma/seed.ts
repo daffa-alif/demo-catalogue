@@ -9,13 +9,13 @@ async function main() {
   await prisma.product.deleteMany();
   await prisma.user.deleteMany();
 
-  // 1. Buat User Admin Khusus (username: admin, password: admin123)
+  // 1. Buat User Super Admin Resmi (Google OAuth: venlisiaputri21@gmail.com)
   await prisma.user.create({
     data: {
-      username: "admin",
-      name: "Admin BizApps",
-      email: "admin@bizapps.id",
-      password: "admin123",
+      username: "venlisiaputri21@gmail.com",
+      name: "Venlisia Putri (Super Admin)",
+      email: "venlisiaputri21@gmail.com",
+      password: "",
       role: "ADMIN",
     },
   });
@@ -31,7 +31,7 @@ async function main() {
     },
   });
 
-  console.log("Users berhasil dibuat (Admin: admin / admin123)");
+  console.log("Users berhasil dibuat (Super Admin: venlisiaputri21@gmail.com)");
 
   // 2. Buat Data Aplikasi Bisnis, POS, Kasir, dan Pembukuan
   const softwareProducts = [

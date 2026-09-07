@@ -77,11 +77,16 @@ export default function AdminPage() {
     setGoogleLoading(true);
     setAuthError("");
     try {
+      const redirectUri =
+        typeof window !== "undefined" && window.location.hostname.includes("vercel.app")
+          ? `https://${window.location.host}/auth/callback`
+          : `${window.location.origin}/auth/callback`;
+
       const supabase = getSupabaseBrowserClient();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUri,
         },
       });
       if (error) throw error;
@@ -210,21 +215,6 @@ export default function AdminPage() {
               )}
               <span>Masuk dengan Google</span>
             </button>
-
-            {/* Info Hak Akses Admin */}
-            <div className="mt-3 rounded-2xl bg-indigo-50/80 p-3.5 border border-indigo-100 text-xs text-indigo-950 flex items-start gap-2.5">
-              <ShieldCheck className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-indigo-900">Otorisasi Administrator:</p>
-                <p className="text-[11px] text-zinc-600 mt-0.5 leading-relaxed">
-                  Hak akses Super Admin diberikan otomatis untuk akun Google:
-                  <br />
-                  <code className="bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded font-mono font-bold text-[11px]">
-                    venlisiaputri21@gmail.com
-                  </code>
-                </p>
-              </div>
-            </div>
 
             {authError && (
               <div className="mt-4 rounded-xl bg-red-50 p-3 text-xs text-red-600 border border-red-200">
@@ -438,14 +428,10 @@ export default function AdminPage() {
             Dashboard ini dikhususkan untuk Administrator.
           </p>
 
-          <div className="mt-6 rounded-2xl bg-indigo-50 p-4 border border-indigo-200 text-xs text-indigo-900 text-left">
-            <p className="font-bold">Otorisasi Khusus Administrator</p>
-            <p className="text-[11px] mt-1 text-zinc-600 leading-relaxed">
-              Hak Super Admin hanya diberikan otomatis kepada akun Google terdaftar:
-              <br />
-              <code className="bg-indigo-100 text-indigo-800 px-1 py-0.5 rounded font-mono font-bold">
-                venlisiaputri21@gmail.com
-              </code>
+          <div className="mt-6 rounded-2xl bg-zinc-100 p-4 border border-zinc-200 text-xs text-zinc-600 text-left">
+            <p className="font-semibold text-zinc-800">Akses Terbatas</p>
+            <p className="text-[11px] mt-1 text-zinc-500 leading-relaxed">
+              Halaman ini hanya dapat diakses oleh akun terverifikasi dengan peran Administrator.
             </p>
           </div>
 
@@ -454,7 +440,7 @@ export default function AdminPage() {
               onClick={handleLogout}
               className="w-full rounded-xl bg-zinc-900 py-3 text-xs font-bold text-white hover:bg-zinc-800 transition"
             >
-              Keluar & Ganti Akun Google Admin
+              Keluar Akun
             </button>
             <Link
               href="/katalog"

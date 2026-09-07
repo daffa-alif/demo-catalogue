@@ -6,8 +6,26 @@ import type { SessionUser } from "@/app/actions/auth";
 import { DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_ANON_KEY } from "@/lib/supabase";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get("code");
+
+  // Deteksi origin yang akurat (prioritaskan header host Vercel)
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+  let origin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : requestUrl.origin;
+
+  // Jika sedang berjalan di lingkungan Vercel production atau host bukan localhost, pastikan selalu ke domain Vercel
+  if (
+    forwardedHost?.includes("vercel.app") ||
+    process.env.VERCEL_URL ||
+    process.env.NODE_ENV === "production"
+  ) {
+    if (origin.includes("localhost") || origin.startsWith("http://")) {
+      origin = "https://demo-catalogue-eta.vercel.app";
+    }
+  }
 
   if (code) {
     const cookieStore = await cookies();

@@ -16,7 +16,7 @@ Katalog Aplikasi Bisnis, Sistem POS Kasir, & Pencatatan Penjualan Siap Pakai ber
 - **Autentikasi Pengguna & Hak Akses Super Admin**:
   - Dukungan autentikasi terintegrasi **Google OAuth 2.0** via Supabase Auth & login lokal.
   - **Super Administrator Resmi**:
-    - Akun Google dengan email `venlisiaputri21@gmail.com` secara otomatis mendapatkan hak akses **Super Admin**.
+    - Akun Administrator terverifikasi secara otomatis mendapatkan hak akses **Super Admin** berbasis server-side check.
     - Sistem login default `admin / admin123` telah dihapus secara menyeluruh untuk keamanan.
   - Proteksi dashboard admin (`/admin`) dengan fitur CRUD lengkap (Tambah, Edit, Hapus, Toggle Ketersediaan Stok/Lisensi).
 - **Arsitektur Server Actions**: Mutasi data langsung dengan revalidasi cache instan (`revalidatePath`).
@@ -74,7 +74,8 @@ Katalog Aplikasi Bisnis, Sistem POS Kasir, & Pencatatan Penjualan Siap Pakai ber
 ## 🔐 Kredensial & Autentikasi
 
 - **Super Administrator:**
-  - Masuk melalui tombol **"Masuk dengan Google"** di `/login` atau `/admin` menggunakan akun Google `venlisiaputri21@gmail.com`.
+  - Masuk melalui tombol **"Masuk dengan Google"** di `/login` atau `/admin` menggunakan akun Google Administrator resmi.
 - **Customer Biasa:**
   - Masuk melalui Google OAuth (otomatis role USER) atau daftar akun baru melalui form registrasi lokal di `/login`.
+
 

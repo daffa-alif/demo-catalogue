@@ -43,11 +43,16 @@ export default function LoginPage() {
     setGoogleLoading(true);
     setErrorMsg("");
     try {
+      const redirectUri =
+        typeof window !== "undefined" && window.location.hostname.includes("vercel.app")
+          ? `https://${window.location.host}/auth/callback`
+          : `${window.location.origin}/auth/callback`;
+
       const supabase = getSupabaseBrowserClient();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUri,
         },
       });
       if (error) throw error;
@@ -161,21 +166,6 @@ export default function LoginPage() {
               )}
               <span>Lanjutkan dengan Google</span>
             </button>
-
-            {/* Super Admin Info Badge */}
-            <div className="mt-3 rounded-2xl bg-indigo-50/80 p-3.5 border border-indigo-100 text-xs text-indigo-950 flex items-start gap-2.5">
-              <ShieldCheck className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-indigo-900">Akses Super Admin:</p>
-                <p className="text-[11px] text-zinc-600 mt-0.5 leading-relaxed">
-                  Hak Administrator otomatis diberikan untuk akun Google resmi:
-                  <br />
-                  <code className="bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded font-mono font-bold text-[11px]">
-                    venlisiaputri21@gmail.com
-                  </code>
-                </p>
-              </div>
-            </div>
 
             {/* Divider */}
             <div className="relative my-6 text-center">

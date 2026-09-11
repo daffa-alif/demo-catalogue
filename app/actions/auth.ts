@@ -18,11 +18,30 @@ export type AuthResponse = {
   user?: SessionUser;
 };
 
+const SESSION_COOKIE_NAME = "user_session";
+
+const getSessionCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: 60 * 60 * 24 * 7, // 7 hari
+});
+
+const getDeleteCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: 0,
+  expires: new Date(0),
+});
+
 // Ambil sesi user saat ini dari cookie
 export async function getCurrentUser(): Promise<SessionUser | null> {
   try {
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("user_session")?.value;
+    const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (
       !sessionCookie ||
       !sessionCookie.trim() ||
@@ -87,12 +106,11 @@ export async function loginUser(formData: {
     };
 
     const cookieStore = await cookies();
-    cookieStore.set("user_session", JSON.stringify(sessionUser), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    cookieStore.set(
+      SESSION_COOKIE_NAME,
+      JSON.stringify(sessionUser),
+      getSessionCookieOptions()
+    );
 
     revalidatePath("/");
     revalidatePath("/admin");
@@ -194,13 +212,13 @@ export async function registerUser(formData: {
 
     // Auto login setelah registrasi
     const cookieStore = await cookies();
-    cookieStore.set("user_session", JSON.stringify(sessionUser), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    cookieStore.set(
+      SESSION_COOKIE_NAME,
+      JSON.stringify(sessionUser),
+      getSessionCookieOptions()
+    );
 
+    revalidatePath("/", "layout");
     revalidatePath("/");
     revalidatePath("/admin");
     revalidatePath("/profile");
@@ -222,22 +240,10 @@ export async function registerUser(formData: {
 export async function logoutUser(): Promise<{ success: boolean }> {
   try {
     const cookieStore = await cookies();
+    const isProd = process.env.NODE_ENV === "production";
 
-    // 1. Bersihkan cookie user_session dengan atribut yang sama persis
-    cookieStore.set("user_session", "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 0,
-      path: "/",
-      expires: new Date(0),
-    });
-    cookieStore.delete({
-      name: "user_session",
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    });
+    // 1. Bersihkan cookie user_session secara konsisten
+    cookieStore.set(SESSION_COOKIE_NAME, "", getDeleteCookieOptions());
 
     // 2. Hapus semua cookie auth Supabase jika ada (sb-*)
     try {
@@ -246,16 +252,15 @@ export async function logoutUser(): Promise<{ success: boolean }> {
         if (
           c.name.startsWith("sb-") ||
           c.name.includes("auth-token") ||
-          c.name.includes("session")
+          c.name.includes("session") ||
+          c.name.includes("user")
         ) {
           cookieStore.set(c.name, "", {
             path: "/",
             maxAge: 0,
             expires: new Date(0),
-          });
-          cookieStore.delete({
-            name: c.name,
-            path: "/",
+            secure: isProd,
+            sameSite: "lax",
           });
         }
       }
@@ -263,12 +268,13 @@ export async function logoutUser(): Promise<{ success: boolean }> {
       // Ignore
     }
 
-    // 3. Bersihkan seluruh router cache Next.js dari layout root
+    // 3. Bersihkan seluruh router cache Next.js
     revalidatePath("/", "layout");
     revalidatePath("/");
     revalidatePath("/admin");
     revalidatePath("/profile");
     revalidatePath("/katalog");
+    revalidatePath("/login");
 
     return { success: true };
   } catch (error) {

@@ -70,31 +70,22 @@ export default function ProfilePage() {
         try {
           localStorage.clear();
           sessionStorage.clear();
-          document.cookie =
-            "user_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; max-age=0; SameSite=Lax";
-          document.cookie =
-            "user_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; max-age=0";
         } catch {}
       }
 
       try {
         const supabase = getSupabaseBrowserClient();
         await Promise.race([
-          supabase.auth.signOut({ scope: "local" }),
+          supabase.auth.signOut(),
           new Promise((resolve) => setTimeout(resolve, 500)),
         ]);
       } catch {}
 
       await logoutUser();
-
-      try {
-        await fetch("/api/auth/logout", { method: "POST" });
-      } catch {}
-
-      window.location.replace(`/?logout=${Date.now()}`);
+      window.location.href = "/api/auth/logout";
     } catch (err) {
       console.error("Logout error:", err);
-      window.location.replace(`/?logout=${Date.now()}`);
+      window.location.href = "/api/auth/logout";
     }
   };
 

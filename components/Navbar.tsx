@@ -23,43 +23,32 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      // 1. Bersihkan localStorage, sessionStorage, dan cookie client-side
+      // 1. Bersihkan client web storage
       if (typeof window !== "undefined") {
         try {
           localStorage.clear();
           sessionStorage.clear();
-          document.cookie =
-            "user_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; max-age=0; SameSite=Lax";
-          document.cookie =
-            "user_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; max-age=0";
         } catch {}
       }
 
-      // 2. Supabase signOut cepat (maks 500ms agar tidak pernah macet)
+      // 2. Supabase signOut
       try {
         const supabase = getSupabaseBrowserClient();
         await Promise.race([
-          supabase.auth.signOut({ scope: "local" }),
+          supabase.auth.signOut(),
           new Promise((resolve) => setTimeout(resolve, 500)),
         ]);
       } catch {}
 
       // 3. Panggil Server Action logout
       await logoutUser();
-
-      // 4. Update state Navbar lokal
       setUser(null);
 
-      // 5. Panggil API Route logout untuk Set-Cookie HTTP header
-      try {
-        await fetch("/api/auth/logout", { method: "POST" });
-      } catch {}
-
-      // 6. Hard reload ke beranda bebas cache
-      window.location.replace(`/?logout=${Date.now()}`);
+      // 4. Navigasi HTTP langsung ke /api/auth/logout agar browser menerima Clear-Site-Data dan Set-Cookie secara definitif
+      window.location.href = "/api/auth/logout";
     } catch (err) {
       console.error("Logout error:", err);
-      window.location.replace(`/?logout=${Date.now()}`);
+      window.location.href = "/api/auth/logout";
     }
   };
 

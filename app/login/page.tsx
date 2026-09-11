@@ -35,9 +35,15 @@ function LoginFormContent() {
     const redirect = searchParams.get("redirect");
     const error = searchParams.get("error");
     const reason = searchParams.get("reason");
+    const logout = searchParams.get("logout");
 
     if (redirect) {
       setRedirectUrl(redirect);
+    }
+    if (logout === "success") {
+      setSuccessMsg(
+        "Anda telah berhasil keluar akun. Sesi & cookie telah dibersihkan sepenuhnya. Silakan masuk dengan akun lain."
+      );
     }
     if (error === "oauth_failed") {
       if (reason) {
@@ -71,6 +77,10 @@ function LoginFormContent() {
         provider: "google",
         options: {
           redirectTo: callbackUrl.toString(),
+          queryParams: {
+            prompt: "select_account",
+            access_type: "offline",
+          },
         },
       });
       if (error) throw error;

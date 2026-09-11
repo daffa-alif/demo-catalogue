@@ -5,10 +5,9 @@ export function middleware(request: NextRequest) {
   const { searchParams, pathname } = request.nextUrl;
   const code = searchParams.get("code");
 
-  // Jika Supabase mengalihkan code ke rute lain (misal root /?code=...), arahkan langsung ke callback
   if (code && pathname !== "/auth/callback") {
     const callbackUrl = new URL("/auth/callback", request.url);
-    callbackUrl.searchParams.set("code", code);
+    callbackUrl.search = request.nextUrl.search;
     return NextResponse.redirect(callbackUrl);
   }
 

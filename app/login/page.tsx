@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { loginUser, registerUser } from "@/app/actions/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { AppWindow, ShieldCheck, UserPlus, LogIn, Loader2 } from "lucide-react";
+import { AppWindow, ShieldCheck, UserPlus, LogIn, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -31,34 +32,45 @@ export default function LoginPage() {
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const redirect = params.get("redirect");
-      if (redirect) {
-        setRedirectUrl(redirect);
-      }
-      if (params.get("error") === "oauth_failed") {
+    const redirect = searchParams.get("redirect");
+    const error = searchParams.get("error");
+    const reason = searchParams.get("reason");
+
+    if (redirect) {
+      setRedirectUrl(redirect);
+    }
+    if (error === "oauth_failed") {
+      if (reason) {
         setErrorMsg(
-          "Autentikasi Google memerlukan izin pengujian khusus. Anda dapat masuk atau mendaftar langsung dengan akun lokal di bawah tanpa kendala."
+          `Autentikasi Google gagal atau dibatalkan (${decodeURIComponent(reason)}). Silakan login atau daftar akun resmi di bawah ini.`
+        );
+      } else {
+        setErrorMsg(
+          "Autentikasi Google belum dapat diselesaikan. Anda dapat langsung masuk atau mendaftar menggunakan formulir akun di bawah ini."
         );
       }
     }
-  }, []);
+  }, [searchParams]);
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     setErrorMsg("");
     try {
-      const redirectUri =
-        typeof window !== "undefined" && window.location.hostname.includes("vercel.app")
-          ? `https://${window.location.host}/auth/callback`
-          : `${window.location.origin}/auth/callback`;
+      const origin =
+        typeof window !== "undefined" && window.location.origin
+          ? window.location.origin
+          : "https://demo-catalogue-eta.vercel.app";
+
+      const callbackUrl = new URL("/auth/callback", origin);
+      if (redirectUrl) {
+        callbackUrl.searchParams.set("next", redirectUrl);
+      }
 
       const supabase = getSupabaseBrowserClient();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: redirectUri,
+          redirectTo: callbackUrl.toString(),
         },
       });
       if (error) throw error;
@@ -235,8 +247,9 @@ export default function LoginPage() {
             </div>
 
             {errorMsg && (
-              <div className="mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-600 border border-red-200">
-                {errorMsg}
+              <div className="mb-4 rounded-xl bg-red-50 p-3.5 text-xs text-red-700 border border-red-200 flex items-start gap-2.5">
+                <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">{errorMsg}</div>
               </div>
             )}
 
@@ -392,3 +405,18 @@ export default function LoginPage() {
     </div>
   );
 }
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        </div>
+      }
+    >
+      <LoginFormContent />
+    </Suspense>
+  );
+}
+

@@ -5,30 +5,79 @@ import { prisma } from "@/lib/prisma";
 import type { SessionUser } from "@/app/actions/auth";
 import { DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_ANON_KEY } from "@/lib/supabase";
 
-export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get("code");
+const VERCEL_CANONICAL_ORIGIN = "https://demo-catalogue-eta.vercel.app";
 
-  // Deteksi origin yang akurat (prioritaskan header host Vercel)
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
-  let origin = forwardedHost
-    ? `${forwardedProto}://${forwardedHost}`
-    : requestUrl.origin;
+// Ekstraksi origin yang aman dari header request Vercel/Proxy tanpa crash
+function getCleanOrigin(request: Request): string {
+  try {
+    const forwardedHost = request.headers.get("x-forwarded-host");
+    const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
 
-  // Jika sedang berjalan di lingkungan Vercel production atau host bukan localhost, pastikan selalu ke domain Vercel
-  if (
-    forwardedHost?.includes("vercel.app") ||
-    process.env.VERCEL_URL ||
-    process.env.NODE_ENV === "production"
-  ) {
-    if (origin.includes("localhost") || origin.startsWith("http://")) {
-      origin = "https://demo-catalogue-eta.vercel.app";
+    if (forwardedHost) {
+      // Hilangkan port atau proxy berantai (dipisahkan koma)
+      const cleanHost = forwardedHost.split(",")[0].trim();
+      if (cleanHost && !cleanHost.includes("localhost")) {
+        return `${forwardedProto}://${cleanHost}`;
+      }
     }
+  } catch {}
+
+  try {
+    const parsed = new URL(request.url);
+    if (parsed.origin && !parsed.origin.includes("localhost")) {
+      return parsed.origin;
+    }
+  } catch {}
+
+  // Fallback environment
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL_URL) {
+    return VERCEL_CANONICAL_ORIGIN;
   }
 
-  if (code) {
+  return "http://localhost:3000";
+}
+
+// Helper redirect aman yang tidak pernah melempar TypeError: Invalid URL
+function safeRedirect(origin: string, targetPath: string): NextResponse {
+  let targetUrl: URL;
+  try {
+    targetUrl = new URL(targetPath, origin);
+  } catch {
+    try {
+      targetUrl = new URL(targetPath, VERCEL_CANONICAL_ORIGIN);
+    } catch {
+      targetUrl = new URL("/login", VERCEL_CANONICAL_ORIGIN);
+    }
+  }
+  return NextResponse.redirect(targetUrl);
+}
+
+export async function GET(request: Request) {
+  let origin = VERCEL_CANONICAL_ORIGIN;
+
+  try {
+    origin = getCleanOrigin(request);
+    const requestUrl = new URL(request.url);
+    const code = requestUrl.searchParams.get("code");
+    const errorParam = requestUrl.searchParams.get("error");
+    const errorDescription = requestUrl.searchParams.get("error_description");
+    const nextParam = requestUrl.searchParams.get("next");
+
+    // Tangani jika provider OAuth mengirim error langsung di query param
+    if (errorParam) {
+      console.warn("OAuth provider callback error:", errorParam, errorDescription);
+      const reason = encodeURIComponent(errorDescription || errorParam);
+      return safeRedirect(origin, `/login?error=oauth_failed&reason=${reason}`);
+    }
+
+    // Jika tidak ada kode otentikasi
+    if (!code) {
+      return safeRedirect(origin, "/login");
+    }
+
     const cookieStore = await cookies();
+    const pendingCookies: Array<{ name: string; value: string; options?: any }> = [];
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY,
@@ -38,44 +87,68 @@ export async function GET(request: Request) {
             return cookieStore.getAll();
           },
           setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              );
-            } catch {
-              // Ignore if called from a Server Component context
-            }
+            cookiesToSet.forEach(({ name, value, options }) => {
+              pendingCookies.push({ name, value, options });
+              try {
+                cookieStore.set(name, value, options);
+              } catch {
+                // Ignore jika dipanggil di konteks terbatas
+              }
+            });
           },
         },
       }
     );
 
+    // Tukar code dengan session auth Supabase
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error && data.user) {
-      const authUser = data.user;
-      const email = (authUser.email || "").toLowerCase().trim();
-      const fullName =
-        authUser.user_metadata?.full_name ||
-        authUser.user_metadata?.name ||
-        (email ? email.split("@")[0] : "Pengguna");
+    if (error || !data.user) {
+      console.error("Supabase OAuth exchange failed:", error?.message);
+      const reason = encodeURIComponent(error?.message || "exchange_failed");
+      return safeRedirect(origin, `/login?error=oauth_failed&reason=${reason}`);
+    }
 
-      // Super Admin Rule: email venlisiaputri21@gmail.com = ADMIN, yang lain = USER
-      const isAdmin = email === "venlisiaputri21@gmail.com";
-      const role: "ADMIN" | "USER" = isAdmin ? "ADMIN" : "USER";
+    const authUser = data.user;
+    const email = (authUser.email || "").toLowerCase().trim();
+    const fullName =
+      authUser.user_metadata?.full_name ||
+      authUser.user_metadata?.name ||
+      (email ? email.split("@")[0] : "Pengguna");
 
-      // Cari user yang sudah ada berdasarkan email atau username
+    // Super Admin Rule: email venlisiaputri21@gmail.com = ADMIN, yang lain = USER
+    const isAdmin = email === "venlisiaputri21@gmail.com";
+    const role: "ADMIN" | "USER" = isAdmin ? "ADMIN" : "USER";
+
+    let finalUserId = authUser.id;
+    let finalUsername = email ? email.split("@")[0] : `user_${Date.now()}`;
+    let finalName = fullName;
+
+    // Sinkronisasi dengan database Prisma (terisolasi dalam try-catch agar DB cold start/timeout tidak menyebabkan 500)
+    try {
       let dbUser = await prisma.user.findFirst({
         where: {
-          OR: [{ email: email }, { username: email }],
+          OR: [
+            { email: { equals: email, mode: "insensitive" } },
+            { username: { equals: email, mode: "insensitive" } },
+            { username: { equals: finalUsername, mode: "insensitive" } },
+          ],
         },
       });
 
       if (!dbUser) {
-        // Buat user baru di database Prisma
+        // Cari username unik jika username default sudah terpakai
+        let chosenUsername = finalUsername;
+        const existingWithUsername = await prisma.user.findUnique({
+          where: { username: chosenUsername },
+        });
+        if (existingWithUsername) {
+          chosenUsername = `${chosenUsername}_${Math.floor(1000 + Math.random() * 9000)}`;
+        }
+
         dbUser = await prisma.user.create({
           data: {
-            username: email || `user_${Date.now()}`,
+            username: chosenUsername,
             name: fullName,
             email: email || null,
             password: "", // User OAuth tidak memerlukan password lokal
@@ -83,7 +156,7 @@ export async function GET(request: Request) {
           },
         });
       } else {
-        // Update role dan data profil jika ada perubahan
+        // Update data jika ada perubahan role atau nama
         dbUser = await prisma.user.update({
           where: { id: dbUser.id },
           data: {
@@ -94,32 +167,57 @@ export async function GET(request: Request) {
         });
       }
 
-      // Siapkan session cookie user_session
-      const sessionUser: SessionUser = {
-        id: dbUser.id,
-        username: dbUser.username,
-        name: dbUser.name,
-        email: dbUser.email || email,
-        role: role,
-      };
-
-      cookieStore.set("user_session", JSON.stringify(sessionUser), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24 * 7, // 7 hari
-        path: "/",
-      });
-
-      // Arahkan ke dashboard admin jika role ADMIN, atau ke katalog jika USER
-      if (role === "ADMIN") {
-        return NextResponse.redirect(`${origin}/admin`);
-      }
-      return NextResponse.redirect(`${origin}/katalog`);
-    } else {
-      console.error("Supabase OAuth exchange error:", error);
+      finalUserId = dbUser.id;
+      finalUsername = dbUser.username;
+      finalName = dbUser.name;
+    } catch (dbError) {
+      console.warn("Prisma user sync warning (fallback used):", dbError);
     }
-  }
 
-  // Jika otentikasi gagal atau tidak ada kode
-  return NextResponse.redirect(`${origin}/login?error=oauth_failed`);
+    // Siapkan session data user
+    const sessionUser: SessionUser = {
+      id: finalUserId,
+      username: finalUsername,
+      name: finalName,
+      email: email || undefined,
+      role: role,
+    };
+
+    // Tentukan path tujuan
+    let targetPath = nextParam || (role === "ADMIN" ? "/admin" : "/katalog");
+    if (!targetPath.startsWith("/")) {
+      targetPath = `/${targetPath}`;
+    }
+
+    const response = safeRedirect(origin, targetPath);
+
+    // Set cookie user_session langsung pada HttpResponse redirect
+    const isProd = process.env.NODE_ENV === "production";
+    response.cookies.set("user_session", JSON.stringify(sessionUser), {
+      httpOnly: true,
+      secure: isProd,
+      maxAge: 60 * 60 * 24 * 7, // 7 hari
+      path: "/",
+      sameSite: "lax",
+    });
+
+    // Tempelkan seluruh cookie Supabase auth ke HttpResponse redirect
+    for (const c of pendingCookies) {
+      try {
+        response.cookies.set(c.name, c.value, {
+          ...c.options,
+          path: c.options?.path || "/",
+          sameSite: c.options?.sameSite || "lax",
+          secure: isProd,
+        });
+      } catch {}
+    }
+
+    return response;
+  } catch (fatalError: any) {
+    // Tangani seluruh uncaught exception agar browser tidak pernah menerima HTTP 500
+    console.error("Fatal uncaught error in /auth/callback:", fatalError);
+    const reason = encodeURIComponent(fatalError?.message || "server_error");
+    return safeRedirect(origin, `/login?error=oauth_failed&reason=${reason}`);
+  }
 }

@@ -323,7 +323,7 @@ export default function AdminPage() {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-zinc-700 uppercase">
-                    Username
+                    Email atau Username
                   </label>
                   <input
                     type="text"
@@ -332,7 +332,7 @@ export default function AdminPage() {
                     onChange={(e) =>
                       setLoginForm({ ...loginForm, username: e.target.value })
                     }
-                    placeholder="Username Anda"
+                    placeholder="email@anda.com atau username"
                     className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-blue-600 focus:outline-none"
                   />
                 </div>

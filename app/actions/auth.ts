@@ -31,28 +31,33 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   }
 }
 
-// 1. Login User (Username & Password)
+// 1. Login User (Username atau Email & Password)
 export async function loginUser(formData: {
   username: string;
   password: string;
 }): Promise<AuthResponse> {
-  const username = formData.username.trim().toLowerCase();
+  const identifier = formData.username.trim();
   const password = formData.password;
 
-  if (!username || !password) {
-    return { success: false, message: "Username dan password wajib diisi." };
+  if (!identifier || !password) {
+    return { success: false, message: "Email/Username dan password wajib diisi." };
   }
 
-  // Login Pengguna melalui Database
+  // Login Pengguna melalui Database: Mendukung pencarian via username ATAU email
   try {
-    const user = await prisma.user.findUnique({
-      where: { username },
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: { equals: identifier, mode: "insensitive" } },
+          { email: { equals: identifier, mode: "insensitive" } },
+        ],
+      },
     });
 
     if (!user || !user.password || user.password !== password) {
       return {
         success: false,
-        message: "Username atau password salah. Coba lagi.",
+        message: "Email/Username atau password salah. Silakan coba lagi.",
       };
     }
 
@@ -80,6 +85,8 @@ export async function loginUser(formData: {
 
     revalidatePath("/");
     revalidatePath("/admin");
+    revalidatePath("/profile");
+    revalidatePath("/katalog");
     return {
       success: true,
       message: `Login berhasil! Selamat datang, ${user.name}`,
@@ -125,8 +132,10 @@ export async function registerUser(formData: {
   }
 
   try {
-    const existing = await prisma.user.findUnique({
-      where: { username },
+    const existing = await prisma.user.findFirst({
+      where: {
+        username: { equals: username, mode: "insensitive" },
+      },
     });
 
     if (existing) {
@@ -134,6 +143,21 @@ export async function registerUser(formData: {
         success: false,
         message: "Username sudah digunakan. Silakan pilih username lain.",
       };
+    }
+
+    if (email) {
+      const existingEmail = await prisma.user.findFirst({
+        where: {
+          email: { equals: email, mode: "insensitive" },
+        },
+      });
+
+      if (existingEmail) {
+        return {
+          success: false,
+          message: "Email ini sudah terdaftar. Silakan login langsung menggunakan email Anda.",
+        };
+      }
     }
 
     const isAdmin = email?.toLowerCase().trim() === "venlisiaputri21@gmail.com";
@@ -168,9 +192,11 @@ export async function registerUser(formData: {
 
     revalidatePath("/");
     revalidatePath("/admin");
+    revalidatePath("/profile");
+    revalidatePath("/katalog");
     return {
       success: true,
-      message: "Akun berhasil didaftarkan!",
+      message: "Akun pembeli resmi berhasil didaftarkan!",
       user: sessionUser,
     };
   } catch (error: any) {

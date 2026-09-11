@@ -28,12 +28,18 @@ export default function LoginPage() {
     password: "",
   });
 
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
+      const redirect = params.get("redirect");
+      if (redirect) {
+        setRedirectUrl(redirect);
+      }
       if (params.get("error") === "oauth_failed") {
         setErrorMsg(
-          "Gagal masuk dengan Google. Pastikan Google Provider sudah diaktifkan di backend Supabase."
+          "Autentikasi Google memerlukan izin pengujian khusus. Anda dapat masuk atau mendaftar langsung dengan akun lokal di bawah tanpa kendala."
         );
       }
     }
@@ -73,7 +79,9 @@ export default function LoginPage() {
       if (res.success) {
         setSuccessMsg(res.message);
         setTimeout(() => {
-          if (res.user?.role === "ADMIN") {
+          if (redirectUrl) {
+            router.push(redirectUrl);
+          } else if (res.user?.role === "ADMIN") {
             router.push("/admin");
           } else {
             router.push("/katalog");
@@ -99,9 +107,13 @@ export default function LoginPage() {
     try {
       const res = await registerUser(registerData);
       if (res.success) {
-        setSuccessMsg("Akun berhasil didaftarkan! Mengalihkan ke katalog...");
+        setSuccessMsg("Akun pembeli resmi berhasil didaftarkan! Mengalihkan...");
         setTimeout(() => {
-          router.push("/katalog");
+          if (redirectUrl) {
+            router.push(redirectUrl);
+          } else {
+            router.push("/katalog");
+          }
           router.refresh();
         }, 800);
       } else {
@@ -129,12 +141,25 @@ export default function LoginPage() {
               Biz<span className="text-indigo-600">Apps</span> ID
             </h1>
             <p className="text-xs text-zinc-500 mt-1">
-              Portal Autentikasi Pelanggan & Administrator
+              Portal Autentikasi Pelanggan & Verifikasi Lisensi
             </p>
           </div>
 
           {/* Form Content */}
           <div className="p-8 pt-4">
+            {/* Buyer Purpose Banner */}
+            <div className="mb-5 rounded-2xl bg-indigo-50/80 border border-indigo-100 p-3.5 text-xs text-indigo-950">
+              <div className="font-bold flex items-center gap-1.5 text-indigo-900 mb-1">
+                <ShieldCheck className="h-4 w-4 text-indigo-600 shrink-0" />
+                Tujuan Verifikasi Akun Pembeli
+              </div>
+              <p className="text-[11.5px] text-indigo-800 leading-relaxed">
+                Akun Anda digunakan untuk memverifikasi keabsahan transaksi, menerbitkan kunci
+                lisensi resmi seumur hidup, dan mengakses master file aplikasi kapan pun di profil
+                Anda.
+              </p>
+            </div>
+
             {/* Tombol Google OAuth */}
             <button
               type="button"
@@ -185,9 +210,9 @@ export default function LoginPage() {
                   setErrorMsg("");
                   setSuccessMsg("");
                 }}
-                className={`flex-1 py-2.5 text-xs font-bold transition-all border-b-2 flex items-center justify-center gap-2 ${
+                className={`flex-1 py-2.5 text-xs font-bold transition-all border-b-2 flex items-center justify-center gap-2 cursor-pointer ${
                   activeTab === "login"
-                    ? "border-blue-600 text-blue-600"
+                    ? "border-indigo-600 text-indigo-600"
                     : "border-transparent text-zinc-400 hover:text-zinc-600"
                 }`}
               >
@@ -199,9 +224,9 @@ export default function LoginPage() {
                   setErrorMsg("");
                   setSuccessMsg("");
                 }}
-                className={`flex-1 py-2.5 text-xs font-bold transition-all border-b-2 flex items-center justify-center gap-2 ${
+                className={`flex-1 py-2.5 text-xs font-bold transition-all border-b-2 flex items-center justify-center gap-2 cursor-pointer ${
                   activeTab === "register"
-                    ? "border-blue-600 text-blue-600"
+                    ? "border-indigo-600 text-indigo-600"
                     : "border-transparent text-zinc-400 hover:text-zinc-600"
                 }`}
               >
@@ -226,7 +251,7 @@ export default function LoginPage() {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-zinc-700 uppercase">
-                    Username
+                    Email atau Username
                   </label>
                   <input
                     type="text"
@@ -235,8 +260,8 @@ export default function LoginPage() {
                     onChange={(e) =>
                       setLoginData({ ...loginData, username: e.target.value })
                     }
-                    placeholder="Contoh: admin atau budi"
-                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-blue-600 focus:outline-none"
+                    placeholder="email@anda.com atau username"
+                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-indigo-600 focus:outline-none"
                   />
                 </div>
 
@@ -252,14 +277,14 @@ export default function LoginPage() {
                       setLoginData({ ...loginData, password: e.target.value })
                     }
                     placeholder="••••••••"
-                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-blue-600 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-indigo-600 focus:outline-none"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 disabled:opacity-50 transition"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white shadow-md hover:bg-indigo-700 disabled:opacity-50 transition cursor-pointer"
                 >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -284,7 +309,7 @@ export default function LoginPage() {
                       setRegisterData({ ...registerData, name: e.target.value })
                     }
                     placeholder="Nama Lengkap Anda"
-                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-blue-600 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-indigo-600 focus:outline-none"
                   />
                 </div>
 
@@ -300,22 +325,23 @@ export default function LoginPage() {
                       setRegisterData({ ...registerData, username: e.target.value })
                     }
                     placeholder="Username unik"
-                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-blue-600 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-indigo-600 focus:outline-none"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-zinc-700 uppercase">
-                    Email (Opsional)
+                    Email Pembeli (Untuk Sertifikat Lisensi)
                   </label>
                   <input
                     type="email"
+                    required
                     value={registerData.email}
                     onChange={(e) =>
                       setRegisterData({ ...registerData, email: e.target.value })
                     }
-                    placeholder="email@example.com"
-                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-blue-600 focus:outline-none"
+                    placeholder="email@anda.com"
+                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-indigo-600 focus:outline-none"
                   />
                 </div>
 
@@ -331,22 +357,25 @@ export default function LoginPage() {
                       setRegisterData({ ...registerData, password: e.target.value })
                     }
                     placeholder="Minimal 5 karakter"
-                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-blue-600 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-zinc-300 p-3 text-sm focus:border-indigo-600 focus:outline-none"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 disabled:opacity-50 transition"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white shadow-md hover:bg-indigo-700 disabled:opacity-50 transition cursor-pointer"
                 >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <UserPlus className="h-4 w-4" />
                   )}
-                  Daftar Akun Baru
+                  Daftar Akun Baru & Klaim Lisensi
                 </button>
+                <p className="text-center text-[11px] text-zinc-400 mt-1">
+                  *Pendaftaran gratis. Akun otomatis aktif untuk verifikasi seluruh transaksi software.
+                </p>
               </form>
             )}
 

@@ -181,14 +181,37 @@ export default function AdminPage() {
 
   const handleLogout = async () => {
     try {
-      const supabase = getSupabaseBrowserClient();
-      await supabase.auth.signOut();
-    } catch {
-      // Ignore
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+          document.cookie =
+            "user_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; max-age=0; SameSite=Lax";
+          document.cookie =
+            "user_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; max-age=0";
+        } catch {}
+      }
+
+      try {
+        const supabase = getSupabaseBrowserClient();
+        await Promise.race([
+          supabase.auth.signOut({ scope: "local" }),
+          new Promise((resolve) => setTimeout(resolve, 500)),
+        ]);
+      } catch {}
+
+      await logoutUser();
+      setCurrentUser(null);
+
+      try {
+        await fetch("/api/auth/logout", { method: "POST" });
+      } catch {}
+
+      window.location.replace(`/?logout=${Date.now()}`);
+    } catch (err) {
+      console.error("Logout error:", err);
+      window.location.replace(`/?logout=${Date.now()}`);
     }
-    await logoutUser();
-    setCurrentUser(null);
-    window.location.href = "/";
   };
 
   const handleDelete = async (id: string, title: string) => {

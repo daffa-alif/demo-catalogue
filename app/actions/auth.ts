@@ -23,9 +23,20 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("user_session")?.value;
-    if (!sessionCookie) return null;
+    if (
+      !sessionCookie ||
+      !sessionCookie.trim() ||
+      sessionCookie === "undefined" ||
+      sessionCookie === "null" ||
+      sessionCookie === '""'
+    ) {
+      return null;
+    }
 
-    return JSON.parse(sessionCookie) as SessionUser;
+    const parsed = JSON.parse(sessionCookie) as SessionUser;
+    if (!parsed || !parsed.id) return null;
+
+    return parsed;
   } catch {
     return null;
   }
@@ -209,12 +220,61 @@ export async function registerUser(formData: {
 
 // 3. Logout User
 export async function logoutUser(): Promise<{ success: boolean }> {
-  const cookieStore = await cookies();
-  cookieStore.delete("user_session");
-  revalidatePath("/");
-  revalidatePath("/admin");
-  revalidatePath("/profile");
-  return { success: true };
+  try {
+    const cookieStore = await cookies();
+
+    // 1. Bersihkan cookie user_session dengan atribut yang sama persis
+    cookieStore.set("user_session", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 0,
+      path: "/",
+      expires: new Date(0),
+    });
+    cookieStore.delete({
+      name: "user_session",
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    // 2. Hapus semua cookie auth Supabase jika ada (sb-*)
+    try {
+      const allCookies = cookieStore.getAll();
+      for (const c of allCookies) {
+        if (
+          c.name.startsWith("sb-") ||
+          c.name.includes("auth-token") ||
+          c.name.includes("session")
+        ) {
+          cookieStore.set(c.name, "", {
+            path: "/",
+            maxAge: 0,
+            expires: new Date(0),
+          });
+          cookieStore.delete({
+            name: c.name,
+            path: "/",
+          });
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    // 3. Bersihkan seluruh router cache Next.js dari layout root
+    revalidatePath("/", "layout");
+    revalidatePath("/");
+    revalidatePath("/admin");
+    revalidatePath("/profile");
+    revalidatePath("/katalog");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal logout:", error);
+    return { success: false };
+  }
 }
 
 export type UserProfile = {
